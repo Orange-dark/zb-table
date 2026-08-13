@@ -1,0 +1,177 @@
+/* ===== 编辑页下方控制区（卡片信息 / 表头配置 / 选手数据） ===== */
+
+.editor-page {
+  min-height: 100vh;
+  background: #000;
+  padding: 20px 14px 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.editor-section {
+  width: 100%;
+  max-width: 960px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.editor-hint {
+  font-size: 13px;
+  color: rgba(255, 220, 220, 0.5);
+}
+.editor-hint code {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(255, 120, 120, 0.12);
+  color: #ffb3b3;
+}
+
+.editor-card {
+  background: #1a0303;
+  border: 1px solid rgba(255, 120, 120, 0.18);
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+
+.editor-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffb3b3;
+  letter-spacing: 2px;
+  margin-bottom: 14px;
+}
+
+/* 卡片信息表单 */
+.editor-fields {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.editor-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: rgba(255, 230, 230, 0.7);
+}
+.editor-fields input {
+  width: 200px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 138, 138, 0.3);
+  background: rgba(40, 8, 8, 0.9);
+  color: #ffecec;
+  outline: none;
+}
+.editor-fields input:focus {
+  border-color: #ff5f6d;
+}
+
+/* 控制表格 */
+.editor-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.editor-table th {
+  text-align: left;
+  padding: 8px 10px;
+  color: rgba(255, 200, 200, 0.75);
+  border-bottom: 1px solid rgba(255, 138, 138, 0.25);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.editor-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(255, 138, 138, 0.12);
+  color: #ffecec;
+}
+.editor-table input {
+  width: 100%;
+  max-width: 170px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 138, 138, 0.3);
+  background: rgba(40, 8, 8, 0.9);
+  color: #ffecec;
+  outline: none;
+}
+.editor-table input:focus {
+  border-color: #ff5f6d;
+}
+
+.badge {
+  display: inline-block;
+  min-width: 30px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255, 120, 120, 0.14);
+  border: 1px solid rgba(255, 138, 138, 0.3);
+  color: #ffb3b3;
+  font-size: 13px;
+  text-align: center;
+}
+
+.muted {
+  color: rgba(255, 230, 230, 0.4);
+  font-size: 13px;
+}
+
+.btn-danger {
+  padding: 5px 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 120, 120, 0.4);
+  background: transparent;
+  color: #ff9a9a;
+  font-size: 13px;
+  transition: background 0.15s;
+}
+.btn-danger:hover {
+  background: rgba(255, 60, 60, 0.18);
+}
+
+.btn-primary {
+  padding: 9px 24px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 138, 138, 0.4);
+  background: linear-gradient(135deg, #d43b4a, #a01f2e);
+  color: #fff;
+  font-weight: 600;
+  transition: filter 0.15s;
+}
+.btn-primary:hover {
+  filter: brightness(1.15);
+}
+
+.btn-secondary {
+  padding: 9px 24px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 138, 138, 0.3);
+  background: rgba(40, 8, 8, 0.9);
+  color: #ffd0d0;
+  transition: border-color 0.15s;
+}
+.btn-secondary:hover {
+  border-color: #ff8a8a;
+}
+
+/* 每个配置卡片的操作行：左侧添加入口，右侧取消/确认 */
+.editor-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+}
+/* 无左侧按钮时整体靠右 */
+.editor-actions-end {
+  justify-content: flex-end;
+}
+.editor-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}

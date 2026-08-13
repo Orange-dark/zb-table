@@ -1,0 +1,41 @@
+/* ===== 全局基础样式（红色积分卡主题） ===== */
+
+:root {
+  --red-deep: #4a0e0e;
+  --red-darker: #2b0606;
+  --red-light: #ff8a8a;
+  --red-accent: #ff5f6d;
+  --gold: #f6c453;
+  --text: #f7e9e9;
+  --text-dim: rgba(247, 233, 233, 0.55);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  background: #000;
+  font-family: 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', -apple-system, 'Segoe UI',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: var(--text);
+}
+
+button,
+input,
+select {
+  font-family: inherit;
+}
+
+button {
+  cursor: pointer;
+}
