@@ -90,13 +90,20 @@ export const useMatchStore = create<MatchState & MatchActions>()((set, get) => {
   const commit = (mutator: (s: MatchState) => MatchState) => {
     const next: MatchState = { ...mutator(get()), version: get().version + 1 }
     set(next)
+    // zustand 的 state 里包含 action 函数，先序列化剔除函数，
+    // 否则 BroadcastChannel 结构化克隆会抛 DataCloneError
+    const snapshot: MatchState = JSON.parse(JSON.stringify(next)) as MatchState
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot))
     } catch {
       /* 隐私模式等场景下忽略持久化失败 */
     }
-    channel?.postMessage({ type: 'state', state: next })
-    pushRemoteState(next)
+    try {
+      channel?.postMessage({ type: 'state', state: snapshot })
+    } catch {
+      /* 广播失败不阻断操作 */
+    }
+    pushRemoteState(snapshot)
   }
 
   return {
