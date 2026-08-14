@@ -21,7 +21,9 @@
       "Bash(git commit -m 'feat: 直播娱乐赛事比分系统 - 红色积分卡片 + 编辑控制区 + 双页面实时同步 *)",
       "Bash(git branch *)",
       "Bash(git remote *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(npm install *)",
+      "Bash(curl -s -o /dev/null -w \"dev server: %{http_code}\\\\n\" http://localhost:5173/)"
     ]
   }
 }

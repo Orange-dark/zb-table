@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { ColumnConfig, MatchState, Player } from '../types'
 import { createDefaultState } from '../types'
+import { fetchRemoteState, pushRemoteState, subscribeRemoteState } from './supabaseSync'
 
 const STORAGE_KEY = 'zb-table-state'
 const CHANNEL_NAME = 'zb-table-sync'
@@ -85,7 +86,7 @@ const channel: BroadcastChannel | null =
   typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel(CHANNEL_NAME) : null
 
 export const useMatchStore = create<MatchState & MatchActions>()((set, get) => {
-  /** 所有变更的统一出口：更新 state → 持久化 → 广播 */
+  /** 所有变更的统一出口：更新 state → 持久化 → 同机广播 → 远端推送 */
   const commit = (mutator: (s: MatchState) => MatchState) => {
     const next: MatchState = { ...mutator(get()), version: get().version + 1 }
     set(next)
@@ -95,6 +96,7 @@ export const useMatchStore = create<MatchState & MatchActions>()((set, get) => {
       /* 隐私模式等场景下忽略持久化失败 */
     }
     channel?.postMessage({ type: 'state', state: next })
+    pushRemoteState(next)
   }
 
   return {
@@ -146,7 +148,15 @@ export const useMatchStore = create<MatchState & MatchActions>()((set, get) => {
 
     setCurrentPlayer: (id) => commit((s) => ({ ...s, currentPlayerId: id })),
 
-    applyRemoteState: (state) => set(state),
+    /** 应用远端/同机广播的状态：写入本地并持久化（不广播、不推送，避免回环） */
+    applyRemoteState: (state) => {
+      set(state)
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+      } catch {
+        /* ignore */
+      }
+    },
   }
 })
 
@@ -156,3 +166,13 @@ channel?.addEventListener('message', (event: MessageEvent) => {
     useMatchStore.getState().applyRemoteState(data.state)
   }
 })
+
+/** 远端初始化：拉取最新状态 + 订阅实时变化，version 大于本地才应用 */
+const applyRemoteIfNewer = (remote: MatchState | null) => {
+  if (remote && remote.version > useMatchStore.getState().version) {
+    useMatchStore.getState().applyRemoteState(remote)
+  }
+}
+
+void fetchRemoteState().then(applyRemoteIfNewer)
+subscribeRemoteState(applyRemoteIfNewer)

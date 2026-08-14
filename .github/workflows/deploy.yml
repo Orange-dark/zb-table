@@ -26,6 +26,10 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          # Supabase 远端同步配置（GitHub Secrets，未配置时为空 → 同步禁用，构建不受影响）
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v4
