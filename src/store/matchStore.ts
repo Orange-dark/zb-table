@@ -81,6 +81,9 @@ interface MatchActions {
   applyRemoteState: (state: MatchState) => void
 }
 
+/** 最近一次推送到远端的版本号，用于跳过自己的推送回声 */
+let lastPushedVersion = 0
+
 /** 同机多标签页 / OBS 窗口之间实时同步的通道 */
 const channel: BroadcastChannel | null =
   typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel(CHANNEL_NAME) : null
@@ -104,6 +107,7 @@ export const useMatchStore = create<MatchState & MatchActions>()((set, get) => {
       /* 广播失败不阻断操作 */
     }
     pushRemoteState(snapshot)
+    lastPushedVersion = snapshot.version
   }
 
   return {
@@ -174,12 +178,19 @@ channel?.addEventListener('message', (event: MessageEvent) => {
   }
 })
 
-/** 远端初始化：拉取最新状态 + 订阅实时变化，version 大于本地才应用 */
-const applyRemoteIfNewer = (remote: MatchState | null) => {
-  if (remote && remote.version > useMatchStore.getState().version) {
+/** 初始拉取：远端即最新事实，无条件应用（覆盖本地旧数据） */
+const applyRemoteFetch = (remote: MatchState | null) => {
+  if (remote) {
     useMatchStore.getState().applyRemoteState(remote)
   }
 }
 
-void fetchRemoteState().then(applyRemoteIfNewer)
-subscribeRemoteState(applyRemoteIfNewer)
+/** 实时推送：跳过自己刚推送的回声，其余直接应用（last-writer-wins 由远端保证） */
+const applyRemoteEvent = (remote: MatchState | null) => {
+  if (remote && remote.version !== lastPushedVersion) {
+    useMatchStore.getState().applyRemoteState(remote)
+  }
+}
+
+void fetchRemoteState().then(applyRemoteFetch)
+subscribeRemoteState(applyRemoteEvent)
