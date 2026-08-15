@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMatchStore } from '../store/matchStore'
 import type { ColumnConfig, Player } from '../types'
 import ScoreCard from './ScoreCard'
@@ -16,6 +16,7 @@ export default function ScoreBoard() {
     maxWidth,
     columns,
     players,
+    currentPlayerId,
     setCardInfo,
     setColumns,
     setPlayers,
@@ -27,6 +28,13 @@ export default function ScoreBoard() {
   const [columnsDraft, setColumnsDraft] = useState<ColumnConfig[]>(columns)
   /** 选手数据草稿 */
   const [playersDraft, setPlayersDraft] = useState<Player[]>(players)
+  /** 当前选手草稿（单选框，随「确认更新」一起应用） */
+  const [currentPlayerIdDraft, setCurrentPlayerIdDraft] = useState<string | null>(currentPlayerId)
+
+  /** 卡片上点击选中 / 远端同步改变当前选手时，同步到草稿单选框 */
+  useEffect(() => {
+    setCurrentPlayerIdDraft(currentPlayerId)
+  }, [currentPlayerId])
 
   /** 按总积分计算当前排名（基于草稿） */
   const rankOf = (playerId: string) => {
@@ -66,6 +74,7 @@ export default function ScoreBoard() {
   const removePlayerDraft = (id: string, name: string) => {
     if (window.confirm(`确定删除选手「${name}」吗？`)) {
       setPlayersDraft((d) => d.filter((p) => p.id !== id))
+      if (currentPlayerIdDraft === id) setCurrentPlayerIdDraft(null)
     }
   }
   const updatePlayerDraft = (id: string, patch: Partial<Pick<Player, 'name' | 'kills' | 'score'>>) =>
@@ -210,6 +219,7 @@ export default function ScoreBoard() {
               <tr>
                 <th>排名</th>
                 <th>选手</th>
+                <th>当前选手</th>
                 {dataColumns.map((c) => (
                   <th key={c.key}>{c.title}</th>
                 ))}
@@ -226,6 +236,14 @@ export default function ScoreBoard() {
                     <input
                       value={p.name}
                       onChange={(e) => updatePlayerDraft(p.id, { name: e.target.value })}
+                    />
+                  </td>
+                  <td className="radio-cell">
+                    <input
+                      type="radio"
+                      name="current-player"
+                      checked={p.id === currentPlayerIdDraft}
+                      onChange={() => setCurrentPlayerIdDraft(p.id)}
                     />
                   </td>
                   {dataColumns.map((col) => {
@@ -284,10 +302,19 @@ export default function ScoreBoard() {
               ＋ 添加选手
             </button>
             <div className="editor-actions-right">
-              <button className="btn-secondary" onClick={() => setPlayersDraft(players)}>
+              <button
+                className="btn-secondary"
+                onClick={() => {
+                  setPlayersDraft(players)
+                  setCurrentPlayerIdDraft(currentPlayerId)
+                }}
+              >
                 取消
               </button>
-              <button className="btn-primary" onClick={() => setPlayers(playersDraft)}>
+              <button
+                className="btn-primary"
+                onClick={() => setPlayers(playersDraft, currentPlayerIdDraft)}
+              >
                 确认更新
               </button>
             </div>

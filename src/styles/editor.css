@@ -102,6 +102,17 @@
 .editor-table input:focus {
   border-color: #ff5f6d;
 }
+.editor-table td.radio-cell {
+  text-align: center;
+}
+.editor-table input[type='radio'] {
+  width: auto;
+  max-width: none;
+  padding: 0;
+  border: none;
+  background: transparent;
+  accent-color: #ff5f6d;
+}
 
 .badge {
   display: inline-block;

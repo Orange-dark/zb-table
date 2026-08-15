@@ -73,8 +73,8 @@ interface MatchActions {
   setColumns: (columns: ColumnConfig[]) => void
   /** 列宽拖拽时批量更新（卡片上直接生效） */
   setColumnWidths: (widths: Record<string, number>) => void
-  /** 选手数据（编辑页「确认更新」后应用）：整体替换选手列表 */
-  setPlayers: (players: Player[]) => void
+  /** 选手数据（编辑页「确认更新」后应用）：整体替换选手列表；可同时指定当前选手（不传则保留原选中，传 null 清除） */
+  setPlayers: (players: Player[], currentPlayerId?: string | null) => void
   /** 设置当前选手（传 null 取消选中） */
   setCurrentPlayer: (id: string | null) => void
   /** 应用其他标签页广播过来的状态（不再次广播，避免回环） */
@@ -144,16 +144,23 @@ export const useMatchStore = create<MatchState & MatchActions>()((set, get) => {
         ),
       })),
 
-    setPlayers: (players) =>
+    setPlayers: (players, currentPlayerId) =>
       commit((s) => {
         const copy = players.map((p) => ({ ...p, stats: { ...p.stats } }))
+        const nextCurrentPlayerId =
+          currentPlayerId === undefined
+            ? // 未指定时保留原选中，仅在被删除时清空
+              copy.some((p) => p.id === s.currentPlayerId)
+              ? s.currentPlayerId
+              : null
+            : // 显式指定时，选手必须仍存在于列表中，否则清空
+              copy.some((p) => p.id === currentPlayerId)
+              ? currentPlayerId
+              : null
         return {
           ...s,
           players: copy,
-          // 被删除的选手若是当前选手，则清除选中
-          currentPlayerId: copy.some((p) => p.id === s.currentPlayerId)
-            ? s.currentPlayerId
-            : null,
+          currentPlayerId: nextCurrentPlayerId,
         }
       }),
 
