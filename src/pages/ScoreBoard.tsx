@@ -30,11 +30,26 @@ export default function ScoreBoard() {
   const [playersDraft, setPlayersDraft] = useState<Player[]>(players)
   /** 当前选手草稿（单选框，随「确认更新」一起应用） */
   const [currentPlayerIdDraft, setCurrentPlayerIdDraft] = useState<string | null>(currentPlayerId)
+  /** 用户是否已开始编辑草稿；编辑后草稿不再跟随远端数据 */
+  const [draftsTouched, setDraftsTouched] = useState(false)
+  const touchDrafts = () => setDraftsTouched(true)
 
   /** 卡片上点击选中 / 远端同步改变当前选手时，同步到草稿单选框 */
   useEffect(() => {
     setCurrentPlayerIdDraft(currentPlayerId)
   }, [currentPlayerId])
+
+  /**
+   * 首次进入页面时把远端数据填入草稿（用户开始编辑前会持续跟随 store，
+   * 一旦 draftsTouched 变为 true 就不再同步，草稿只由用户本地控制）。
+   */
+  useEffect(() => {
+    if (draftsTouched) return
+    setCardDraft({ title, groupTag, subtitle, maxWidth })
+    setColumnsDraft(columns)
+    setPlayersDraft(players)
+    setCurrentPlayerIdDraft(currentPlayerId)
+  }, [title, groupTag, subtitle, maxWidth, columns, players, currentPlayerId, draftsTouched])
 
   /** 按总积分计算当前排名（基于草稿） */
   const rankOf = (playerId: string) => {
@@ -46,7 +61,8 @@ export default function ScoreBoard() {
   const dataColumns = columnsDraft.filter((c) => c.key !== 'rank' && c.key !== 'player')
 
   // ===== 表头草稿操作 =====
-  const addColumnDraft = () =>
+  const addColumnDraft = () => {
+    touchDrafts()
     setColumnsDraft((d) => [
       ...d,
       {
@@ -56,33 +72,50 @@ export default function ScoreBoard() {
         minWidth: 70,
       },
     ])
-  const removeColumnDraft = (key: string) =>
+  }
+  const removeColumnDraft = (key: string) => {
+    touchDrafts()
     setColumnsDraft((d) => d.filter((c) => c.key !== key))
-  const renameColumnDraft = (key: string, title: string) =>
+  }
+  const renameColumnDraft = (key: string, title: string) => {
+    touchDrafts()
     setColumnsDraft((d) => d.map((c) => (c.key === key ? { ...c, title } : c)))
-  const changeColumnWidthDraft = (key: string, width: number) =>
+  }
+  const changeColumnWidthDraft = (key: string, width: number) => {
+    touchDrafts()
     setColumnsDraft((d) =>
       d.map((c) => (c.key === key ? { ...c, width: Math.max(width, c.minWidth) } : c)),
     )
+  }
 
   // ===== 选手草稿操作 =====
-  const addPlayerDraft = () =>
+  const addPlayerDraft = () => {
+    touchDrafts()
     setPlayersDraft((d) => [
       ...d,
       { id: crypto.randomUUID(), name: `选手 ${d.length + 1}`, kills: 0, score: 0, stats: {} },
     ])
+  }
   const removePlayerDraft = (id: string, name: string) => {
     if (window.confirm(`确定删除选手「${name}」吗？`)) {
+      touchDrafts()
       setPlayersDraft((d) => d.filter((p) => p.id !== id))
       if (currentPlayerIdDraft === id) setCurrentPlayerIdDraft(null)
     }
   }
-  const updatePlayerDraft = (id: string, patch: Partial<Pick<Player, 'name' | 'kills' | 'score'>>) =>
+  const updatePlayerDraft = (
+    id: string,
+    patch: Partial<Pick<Player, 'name' | 'kills' | 'score'>>,
+  ) => {
+    touchDrafts()
     setPlayersDraft((d) => d.map((p) => (p.id === id ? { ...p, ...patch } : p)))
-  const setStatDraft = (id: string, key: string, value: number) =>
+  }
+  const setStatDraft = (id: string, key: string, value: number) => {
+    touchDrafts()
     setPlayersDraft((d) =>
       d.map((p) => (p.id === id ? { ...p, stats: { ...p.stats, [key]: value } } : p)),
     )
+  }
 
   return (
     <div className="editor-page">
@@ -104,21 +137,30 @@ export default function ScoreBoard() {
               主标题
               <input
                 value={cardDraft.title}
-                onChange={(e) => setCardDraft((d) => ({ ...d, title: e.target.value }))}
+                onChange={(e) => {
+                  touchDrafts()
+                  setCardDraft((d) => ({ ...d, title: e.target.value }))
+                }}
               />
             </label>
             <label>
               组别
               <input
                 value={cardDraft.groupTag}
-                onChange={(e) => setCardDraft((d) => ({ ...d, groupTag: e.target.value }))}
+                onChange={(e) => {
+                  touchDrafts()
+                  setCardDraft((d) => ({ ...d, groupTag: e.target.value }))
+                }}
               />
             </label>
             <label>
               副标题
               <input
                 value={cardDraft.subtitle}
-                onChange={(e) => setCardDraft((d) => ({ ...d, subtitle: e.target.value }))}
+                onChange={(e) => {
+                  touchDrafts()
+                  setCardDraft((d) => ({ ...d, subtitle: e.target.value }))
+                }}
               />
             </label>
             <label>
@@ -127,16 +169,20 @@ export default function ScoreBoard() {
                 type="number"
                 min={280}
                 value={cardDraft.maxWidth}
-                onChange={(e) =>
+                onChange={(e) => {
+                  touchDrafts()
                   setCardDraft((d) => ({ ...d, maxWidth: Number(e.target.value) || 600 }))
-                }
+                }}
               />
             </label>
           </div>
           <div className="editor-actions editor-actions-end">
             <button
               className="btn-secondary"
-              onClick={() => setCardDraft({ title, groupTag, subtitle, maxWidth })}
+              onClick={() => {
+                touchDrafts()
+                setCardDraft({ title, groupTag, subtitle, maxWidth })
+              }}
             >
               取消
             </button>
@@ -201,7 +247,13 @@ export default function ScoreBoard() {
               ＋ 添加列
             </button>
             <div className="editor-actions-right">
-              <button className="btn-secondary" onClick={() => setColumnsDraft(columns)}>
+              <button
+                className="btn-secondary"
+                onClick={() => {
+                  touchDrafts()
+                  setColumnsDraft(columns)
+                }}
+              >
                 取消
               </button>
               <button className="btn-primary" onClick={() => setColumns(columnsDraft)}>
@@ -243,7 +295,10 @@ export default function ScoreBoard() {
                       type="radio"
                       name="current-player"
                       checked={p.id === currentPlayerIdDraft}
-                      onChange={() => setCurrentPlayerIdDraft(p.id)}
+                      onChange={() => {
+                        touchDrafts()
+                        setCurrentPlayerIdDraft(p.id)
+                      }}
                     />
                   </td>
                   {dataColumns.map((col) => {
@@ -305,6 +360,7 @@ export default function ScoreBoard() {
               <button
                 className="btn-secondary"
                 onClick={() => {
+                  touchDrafts()
                   setPlayersDraft(players)
                   setCurrentPlayerIdDraft(currentPlayerId)
                 }}
