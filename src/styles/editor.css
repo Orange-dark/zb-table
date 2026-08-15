@@ -105,7 +105,8 @@
 .editor-table td.radio-cell {
   text-align: center;
 }
-.editor-table input[type='radio'] {
+.editor-table input[type='radio'],
+.editor-table input[type='checkbox'] {
   width: auto;
   max-width: none;
   padding: 0;

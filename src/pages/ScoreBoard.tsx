@@ -292,12 +292,13 @@ export default function ScoreBoard() {
                   </td>
                   <td className="radio-cell">
                     <input
-                      type="radio"
-                      name="current-player"
+                      type="checkbox"
                       checked={p.id === currentPlayerIdDraft}
                       onChange={() => {
                         touchDrafts()
-                        setCurrentPlayerIdDraft(p.id)
+                        setCurrentPlayerIdDraft(
+                          p.id === currentPlayerIdDraft ? null : p.id,
+                        )
                       }}
                     />
                   </td>
